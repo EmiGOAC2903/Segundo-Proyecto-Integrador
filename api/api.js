@@ -4,29 +4,40 @@ document.addEventListener('DOMContentLoaded', () => {
                || location.hostname === "localhost";
 
   const API = isLocal
-    ? "http://127.0.0.1:8000"      // cuando estoy probando en mi compu
+    ? "http://127.0.0.1:8000"      // localhost
     : "http://127.0.0.1:8000";     // cambiar por dominio cuando esté en producción
     
   const $ = (id) => document.getElementById(id);
 
-  const $msg       = $("msg");                 // mensajes al usuario
-  const $btn       = $("btnRecargar");
-  const $lista     = $("contenedor-noticias"); // contenedor del feed
-  const $form      = $("form-alerta");         // form crear post
-  const $formEdit  = $("form-actualizar");     // form actualizar post
+  const $msg        = $("msg");                 // mensajes al usuario (general)
+  const $btn        = $("btnRecargar");
+  const $lista      = $("contenedor-noticias"); // contenedor del feed
+  const $form       = $("form-alerta");         // form crear post
+  const $formEdit   = $("form-actualizar");     // form actualizar post
   const $formBuscar = $("form-buscar");
 
-  // mensajes por sección (con fallback al msg general si existe)
+  // mensajes por sección (con fallback al msg general)
   const $msgFeed   = $("msg-feed")   || $msg;
   const $msgCreate = $("msg-create") || $msg;
   const $msgEdit   = $("msg-edit")   || $msg;
+
+  // ---- elementos para discover (si existen en esta página) ----
+  const $discoverContainer = $("discover-contenido");
+  const $msgDiscover       = $("msg-discover");
+  const $btnDiscoverLoad   = $("btnDiscoverLoad");   // botón "Cargar más"
+  const $btnDiscoverReload = $("btnDiscoverReload"); // botón "Recargar imágenes"
 
   // claves para localStorage
   const LS_FEED_DATA = "feed_cache_posts";
   const LS_FEED_TS   = "feed_last_fetch";
 
-  // página actual para la paginación
+  // página actual para la paginación del feed
   let paginaActual = 0;
+
+  // discover: cuántas imágenes llevamos y límites
+  let discoverLoaded   = 0;
+  const DISCOVER_MAX   = 27; // máximo total de imágenes en discover
+  const DISCOVER_CHUNK = 9;  // cuántas por “cargar más”
 
   // -------------------------
   // Helpers
@@ -34,8 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getUsuarioActual() {
     // Lo ideal: tener un form que guarde esto en sessionStorage.
-    // Mientras, si no existe, usamos "anon".
-    return sessionStorage.getItem("usuarioActual") || "anon";
+    // Mientras, si no existe, usamos anonymus.
+    return sessionStorage.getItem("usuarioActual") || "anonymus";
   }
 
   // convierte un post en tarjeta HTML
@@ -76,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // -------------------------
-  // Cargar feed (con paginación y min_date)
+  // Cargar feed (con paginación)
   // -------------------------
   async function cargar(pagina = 0) {
     pagina = Number(pagina) || 0;
@@ -86,12 +97,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastFetch = localStorage.getItem(LS_FEED_TS);
     const hasCache  = !!localStorage.getItem(LS_FEED_DATA) && !!lastFetch;
 
-    // Construir URL con skip/limit y, si aplica, min_date
+    // Construir URL con skip/limit
     let url = `${API}/api/posts?skip=${skip}&limit=${limit}`;
 
-    // !! TO DO: Manejar lo de los posts nuevos
+    // !! TO DO: Manejar lo de los posts nuevos con min_date
     //if (hasCache) {
-      //url += `&min_date=${encodeURIComponent(lastFetch)}`;
+    //  url += `&min_date=${encodeURIComponent(lastFetch)}`;
     //}
 
     try {
@@ -105,11 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       const tarjetas = data.map(card).join("");
 
-      $lista.innerHTML = `
-        <div class="row g-3 mb-3">
-          ${tarjetas}
-        </div>
-      `;
+      if ($lista) {
+        $lista.innerHTML = `
+          <div class="row g-3 mb-3">
+            ${tarjetas}
+          </div>
+        `;
+      }
 
       $msgFeed && ($msgFeed.textContent = `Página ${pagina + 1} (${data.length} posts cargados)`);
 
@@ -135,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (res.status === 404) {
         $msgBuscar && ($msgBuscar.textContent = "Post no encontrado");
-        $resultado.innerHTML = "";
+        if ($resultado) $resultado.innerHTML = "";
         return;
       }
 
@@ -143,17 +156,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const post = await res.json();
 
-      $resultado.innerHTML = `
-        <div class="card mt-3 bg-dark text-light border-success-subtle">
-          <div class="card-body">
-            <h5>${post.titulo}</h5>
-            <p>${post.descripcion || "Sin descripción"}</p>
-            <small class="text-muted">
-              Publicado por: <strong>${post.usuario}</strong>
-            </small>
+      if ($resultado) {
+        $resultado.innerHTML = `
+          <div class="card mt-3 bg-dark text-light border-success-subtle">
+            <div class="card-body">
+              <h5>${post.titulo}</h5>
+              <p>${post.descripcion || "Sin descripción"}</p>
+              <small class="text-muted">
+                Publicado por: <strong>${post.usuario}</strong>
+              </small>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
       $msgBuscar && ($msgBuscar.textContent = "Post cargado correctamente.");
     } catch (e) {
       console.error(e);
@@ -293,8 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // -------------------------
-  // (Opcional) función para eliminar post
-  // La puedes conectar a un formulario o botón más adelante
+  // (Opcional) función para eliminar post 
+  // !! TO DO: hay que ver si agregamos funcion en el front para implementar esto
   // -------------------------
   async function eliminarPost(id) {
     const usuarioActual = getUsuarioActual();
@@ -333,7 +348,138 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // -------------------------
-  // Paginación
+  // Discover (Unsplash)
+  // -------------------------
+
+  // genera un título breve a partir de una descripción larga
+  function makeShortTitle(text) {
+    if (!text) return "Imagen de Unsplash";
+
+    // 1. quitar URLs
+    let t = text.replace(/https?:\/\/\S+/g, "").trim();
+
+    // 2. cortar en el primer paréntesis / guion / barra / punto, si existe
+    t = t.split(/[()\-|•·]/)[0].trim();
+
+    // 3. si sigue muy largo, truncar a 60 caracteres
+    const MAX = 60;
+    if (t.length > MAX) {
+      t = t.slice(0, MAX - 3).trim() + "...";
+    }
+
+    return t || "Imagen de Unsplash";
+  }
+
+  // convertir la respuesta de discover (Unsplash) a un "post" del feed
+  function unsplashToPost(img) {
+    const desc = img.descripcion || "Imagen de Unsplash";
+    const tituloCorto = makeShortTitle(desc);
+
+    return {
+      titulo: tituloCorto,                   // título ya cortito
+      fecha_alta: new Date().toISOString(),
+      usuario: `${img.autor} (Unsplash)`,
+      imagen: img.url_imagen,
+      descripcion: desc,                     // descripción completa
+      url: img.url_full,
+      tags: ["unsplash"],                    // tag fija para identificar origen
+      alt: desc
+    };
+  }
+
+  async function cargarDiscover({ append } = { append: false }) {
+    if (!$discoverContainer) return; // si no hay contenedor, no hacemos nada
+
+    // si ya llegamos al máximo, no pegarle otra vez a la API
+    if (discoverLoaded >= DISCOVER_MAX) {
+      if ($msgDiscover) $msgDiscover.textContent = "Ya se cargaron todas las imágenes permitidas.";
+      if ($btnDiscoverLoad) {
+        $btnDiscoverLoad.disabled = true;
+        $btnDiscoverLoad.textContent = "No hay más por cargar";
+      }
+      return;
+    }
+
+    // cuánto falta para llegar al máximo
+    const remaining = DISCOVER_MAX - discoverLoaded;
+    const count = Math.min(DISCOVER_CHUNK, remaining);
+
+    try {
+      if ($msgDiscover) $msgDiscover.textContent = "Cargando imágenes de Unsplash...";
+      const res = await fetch(`${API}/api/discover?count=${count}`);
+
+      if (!res.ok) {
+        if ($msgDiscover) $msgDiscover.textContent = "Error al obtener imágenes de Unsplash.";
+        return;
+      }
+
+      const data = await res.json();
+
+      const tarjetasNuevas = data
+        .map(unsplashToPost)   // transformamos cada imagen a "post"
+        .map(card)             // usamos la misma card(post) del feed
+        .join("");
+
+      // si ya había contenido y queremos "append", agregamos al final
+      if (append && $discoverContainer.innerHTML.trim() !== "") {
+        const row = $discoverContainer.querySelector(".row");
+        if (row) {
+          row.insertAdjacentHTML("beforeend", tarjetasNuevas);
+        } else {
+          $discoverContainer.innerHTML = `
+            <div class="row g-3">
+              ${tarjetasNuevas}
+            </div>
+          `;
+        }
+      } else {
+        // primera vez o queremos reemplazar todo
+        $discoverContainer.innerHTML = `
+          <div class="row g-3">
+            ${tarjetasNuevas}
+          </div>
+        `;
+      }
+
+      discoverLoaded += data.length;
+
+      if ($msgDiscover) {
+        $msgDiscover.textContent = `Se han cargado ${discoverLoaded} imágenes (máx ${DISCOVER_MAX}).`;
+      }
+
+      // si ya alcanzamos el máximo, deshabilitar botón
+      if (discoverLoaded >= DISCOVER_MAX && $btnDiscoverLoad) {
+        $btnDiscoverLoad.disabled = true;
+        $btnDiscoverLoad.textContent = "No hay más por cargar";
+      }
+    } catch (e) {
+      console.error(e);
+      if ($msgDiscover) $msgDiscover.textContent = "No se pudieron cargar las imágenes.";
+    }
+  }
+
+  // botón Cargar más al final de la página
+  if ($btnDiscoverLoad) {
+    $btnDiscoverLoad.addEventListener("click", () => {
+      cargarDiscover({ append: true }); // agrega más al final
+    });
+  }
+
+  // botón ARRIBA Recargar imágenes
+  if ($btnDiscoverReload) {
+    $btnDiscoverReload.addEventListener("click", () => {
+      window.location.reload();
+    });
+  }
+
+  // Si estamos en una página que tiene discover-contenido, cargamos el primer bloque
+  if ($discoverContainer) {
+    discoverLoaded = 0;
+    cargarDiscover({ append: false }); // primer bloque
+  }
+
+  // -------------------------
+  // Paginación (feed)
   // -------------------------
   const $prev = $("prev");
   const $next = $("next");
@@ -354,8 +500,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Botón recargar
-  if ($btn) {
+  // Botón recargar (feed)
+  if ($btn && $lista) {
     $btn.addEventListener("click", () => cargar(paginaActual));
   }
 
@@ -368,7 +514,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Carga inicial del feed
-  cargar(paginaActual);
+  // Carga inicial del feed (solo si existe el contenedor del feed)
+  if ($lista) {
+    cargar(paginaActual);
+  }
 
 });

@@ -1,12 +1,16 @@
 # main.py
 # Backend de nuestra página tipo Pinterest
 # API REST simple que devuelve y gestiona posts (imágenes tipo feed)
+# y expone un endpoint /api/discover que llama a Unsplash.
 
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+
+import os
+import requests  # para llamar a Unsplash desde el backend
 
 app = FastAPI(title="Pinterest-like Posts API")
 
@@ -17,6 +21,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# -----------------------------
+# Config Unsplash
+# -----------------------------
+
+UNSPLASH_ACCESS_KEY = os.getenv("UNSPLASH_ACCESS_KEY")
+
 
 # -----------------------------
 # Modelos de datos
@@ -52,6 +63,16 @@ class PostUpdate(BaseModel):
     url: Optional[str] = None
     tags: Optional[List[str]] = None
     alt: Optional[str] = None
+
+
+# Modelo para las imágenes de discover (Unsplash ya transformadas)
+class DiscoverImage(BaseModel):
+    id: str
+    descripcion: Optional[str] = None
+    url_imagen: str           # URL para mostrar en el front
+    url_full: str             # Link a la foto en Unsplash
+    autor: str
+    perfil_autor: str
 
 
 # -----------------------------
@@ -119,8 +140,9 @@ def seed():
 
 seed()
 
+
 # -----------------------------
-# Endpoints
+# Endpoints feed (posts)
 # -----------------------------
 
 @app.get("/")
@@ -133,28 +155,17 @@ def health():
 def listar_posts(
     skip: int = 0,
     limit: int = 10,
-    min_date: Optional[str] = None
 ):
+    """
+    Lista posts del feed con paginación simple (sin min_date por ahora).
+    """
     if skip < 0:
         skip = 0
     if limit <= 0:
         limit = 10
 
     posts = DB
-    
-    # !! TO DO: Filtrar por min_date si se proporciona
-    """
-    if min_date is not None:
-        try:
-            parsed = datetime.fromisoformat(min_date.replace("Z", "+00:00"))
-            parsed_naive = parsed.replace(tzinfo=None)
-            posts = [p for p in posts if p.fecha_alta >= parsed_naive]
-        except Exception:
-            # si no se pudo parsear min_date, seguimos sin filtro
-            pass
-    """       
     return posts[skip: skip + limit]
-
 
 
 @app.get("/api/posts/{post_id}", response_model=Post)
@@ -253,3 +264,78 @@ def eliminar_post(
             return
 
     raise HTTPException(status_code=404, detail="Post no encontrado")
+
+
+# -----------------------------
+# Endpoint Discover (Unsplash)
+# -----------------------------
+
+@app.get("/api/discover", response_model=List[DiscoverImage])
+def discover_images(count: int = 9):
+    """
+    Devuelve imágenes 'aleatorias' desde Unsplash, transformadas
+    para que el frontend solo reciba lo necesario para renderizar.
+    """
+    if UNSPLASH_ACCESS_KEY is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Unsplash no está configurado en el servidor."
+        )
+
+    # Limitar por las reglas de Unsplash (count max ~30 en /photos/random)
+    if count < 1:
+        count = 1
+    if count > 30:
+        count = 30
+
+    url = "https://api.unsplash.com/photos/random"
+    params = {
+        "count": count,
+        # aquí podrías agregar filtros si quieres:
+        # "query": "landscape",
+        # "orientation": "portrait",
+    }
+    headers = {
+        "Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}"
+    }
+
+    try:
+        resp = requests.get(url, headers=headers, params=params, timeout=5)
+    except Exception:
+        raise HTTPException(
+            status_code=502,
+            detail="No se pudo conectar con la API de Unsplash."
+        )
+
+    if resp.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail="Error al consultar Unsplash."
+        )
+
+    data = resp.json()
+
+    # /photos/random con count>1 regresa lista; sin count regresa un solo objeto
+    if isinstance(data, dict):
+        data = [data]
+
+    resultado: List[DiscoverImage] = []
+    for item in data:
+        desc = item.get("description") or item.get("alt_description")
+
+        urls = item.get("urls", {})
+        links = item.get("links", {})
+        user  = item.get("user", {})
+        user_links = user.get("links", {})
+
+        img = DiscoverImage(
+            id=item.get("id", ""),
+            descripcion=desc,
+            url_imagen=urls.get("small") or urls.get("regular") or "",
+            url_full=links.get("html") or "",
+            autor=user.get("name") or "Desconocido",
+            perfil_autor=user_links.get("html") or ""
+        )
+        resultado.append(img)
+
+    return resultado
