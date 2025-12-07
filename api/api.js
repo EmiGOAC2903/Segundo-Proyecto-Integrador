@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
                || location.hostname === "localhost";
 
   const API = isLocal
-    ? "http://127.0.0.1:8000"      // cuando estoy probando en mi compu
+    ? "http://127.0.0.1:8000"      // localhost
     : "http://127.0.0.1:8000";     // cambiar por dominio cuando esté en producción
     
   const $ = (id) => document.getElementById(id);
@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const $formEdit   = $("form-actualizar");     // form actualizar post
   const $formBuscar = $("form-buscar");
 
-  // mensajes por sección (con fallback al msg general si existe)
+  // mensajes por sección (con fallback al msg general)
   const $msgFeed   = $("msg-feed")   || $msg;
   const $msgCreate = $("msg-create") || $msg;
   const $msgEdit   = $("msg-edit")   || $msg;
@@ -45,8 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getUsuarioActual() {
     // Lo ideal: tener un form que guarde esto en sessionStorage.
-    // Mientras, si no existe, usamos "anon".
-    return sessionStorage.getItem("usuarioActual") || "anon";
+    // Mientras, si no existe, usamos anonymus.
+    return sessionStorage.getItem("usuarioActual") || "anonymus";
   }
 
   // convierte un post en tarjeta HTML
@@ -308,7 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // -------------------------
-  // (Opcional) función para eliminar post
+  // (Opcional) función para eliminar post 
+  // !! TO DO: hay que ver si agregamos funcion en el front para implementar esto
   // -------------------------
   async function eliminarPost(id) {
     const usuarioActual = getUsuarioActual();
@@ -457,14 +458,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // botón "Cargar más" al final de la página
+  // botón Cargar más al final de la página
   if ($btnDiscoverLoad) {
     $btnDiscoverLoad.addEventListener("click", () => {
       cargarDiscover({ append: true }); // agrega más al final
     });
   }
 
-  // botón ARRIBA "Recargar imágenes" (reinicia discover recargando la página)
+  // botón ARRIBA Recargar imágenes
   if ($btnDiscoverReload) {
     $btnDiscoverReload.addEventListener("click", () => {
       window.location.reload();
