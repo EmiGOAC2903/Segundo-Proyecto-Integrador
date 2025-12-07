@@ -11,7 +11,7 @@
     rel="stylesheet"
   >
 </head>
-<body class="bg-dark text-light">
+<body id="top-index" class="bg-dark text-light">
 
   <main class="container py-4">
 
@@ -243,5 +243,61 @@
     })();
   </script>
 
+    <!-- Botón flotante Feed / Discover -->
+  <div
+    id="switcher"
+    style="
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      z-index: 1000;
+    "
+  >
+    <div class="btn-group">
+      <button id="btnFeed" class="btn btn-sm btn-light">Feed</button>
+      <button id="btnDiscover" class="btn btn-sm btn-light">Discover</button>
+    </div>
+  </div>
+
+  <!-- Script para navegación Feed / Discover -->
+  <script>
+    (function () {
+      // true si estamos en discover.html
+      const isDiscover = location.pathname.endsWith("discover.html");
+
+      const btnFeed = document.getElementById("btnFeed");
+      const btnDiscover = document.getElementById("btnDiscover");
+
+      btnFeed.addEventListener("click", () => {
+        if (isDiscover) {
+          // si estamos en discover, ir al feed
+          window.location.href = "index.html"; // cambia el nombre si tu feed se llama distinto
+        } else {
+          // si ya estamos en feed, solo recargar
+          window.location.reload();
+        }
+      });
+
+      btnDiscover.addEventListener("click", () => {
+        if (isDiscover) {
+          // si ya estamos en discover, solo recargar
+          window.location.reload();
+        } else {
+          // si estamos en feed, ir a discover
+          window.location.href = "discover.html";
+        }
+      });
+    })();
+  </script>
+
+  <a href="#top-index"
+    class="btn btn-success position-fixed bottom-0 end-0 m-4 shadow"
+    style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+    <span>^</span>
+  </a>
+
 </body>
 </html>
+
+
