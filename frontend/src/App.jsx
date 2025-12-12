@@ -12,10 +12,10 @@ const API = isLocal
   : "http://127.0.0.1:8000"; // cambiar por dominio cuando esté en producción
 
 function getUsuarioActual() {
-  return sessionStorage.getItem("usuarioActual") || "anonymus";
+  return sessionStorage.getItem("usuarioActual") || "anon";
 }
 
-// ---------------------- CARD (equivalente a card(post)) ----------------------
+// ---------------------- CARDS ----------------------
 function PostCard({ post }) {
   const fecha = new Date(post.fecha_alta || post.fecha || post.timestamp);
   const when = fecha.toLocaleDateString("es-MX", {
@@ -52,6 +52,19 @@ function PostCard({ post }) {
     img
   );
 
+  const usuarioActual = getUsuarioActual();
+  const esMio = post.usuario === usuarioActual;
+
+  console.log(
+    "[PostCard] usuarioActual:", usuarioActual,
+    "| post.usuario:", post.usuario,
+    "| esMio:", esMio,
+    "| post.id:", post.id
+  );
+
+
+
+
   return (
     <div className="col-12 col-sm-6 col-lg-4">
       <div className="card bg-dark text-light border-0 h-100">
@@ -71,6 +84,12 @@ function PostCard({ post }) {
             >
               Ver más
             </a>
+          )}
+
+          {esMio && (
+            <button className="btn btn-outline-warning btn-sm ms-2">
+              Editar
+            </button>
           )}
           {tags.length > 0 && <div className="mt-2">{tags}</div>}
         </div>
