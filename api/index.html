@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <title>Mini Feed de Imágenes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Bootstrap mínimo -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+</head>
+<body id="top-index" class="bg-dark text-light">
+
+  <main class="container py-4">
+
+    <!-- Usuario actual (se guarda en sessionStorage) -->
+    <section class="mb-4">
+      <h1 class="h4 mb-3">Mini feed tipo Pinterest</h1>
+      <div class="row g-2 align-items-center">
+        <div class="col-sm-6 col-md-4">
+          <input
+            id="usuario-input"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+            placeholder="nombre de usuario (ej. tania)"
+          >
+        </div>
+        <div class="col-sm-6 col-md-4">
+          <button id="btnSetUsuario" class="btn btn-sm btn-success">
+            Usar este usuario
+          </button>
+        </div>
+        <div class="col-12 mt-2">
+          <small class="text-muted">
+            Usuario actual: <span id="usuario-actual-label">anon</span>
+          </small>
+        </div>
+      </div>
+    </section>
+
+    <!-- feed de posts -->
+    <section class="mb-2">
+      <div class="row g-3" id="contenedor-noticias"></div>
+    </section>
+    <!-- mensaje del feed debajo de la sección -->
+    <p id="msg-feed" class="text-muted small mb-3">Cargando...</p>
+
+    <!-- paginación simple -->
+    <section class="mb-4">
+      <div class="d-flex justify-content-center gap-2">
+        <button id="prev" class="btn btn-outline-light btn-sm">Anterior</button>
+        <button id="next" class="btn btn-outline-light btn-sm">Siguiente</button>
+        <button id="btnRecargar" class="btn btn-outline-success btn-sm">Recargar</button>
+      </div>
+    </section>
+
+    <hr class="border-secondary">
+
+    <!-- Buscar por ID -->
+    <section class="mb-4">
+      <h2 class="h6 mb-2">Buscar post por ID</h2>
+      <form id="form-buscar" class="row g-2">
+        <div class="col-sm-4 col-md-3">
+          <input
+            type="number"
+            id="buscar-id"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+            placeholder="ID"
+          >
+        </div>
+        <div class="col-sm-4 col-md-2">
+          <button type="submit" class="btn btn-sm btn-primary">Buscar</button>
+        </div>
+      </form>
+      <p id="msg-buscar" class="text-muted small mt-2"></p>
+      <div id="resultado" class="mt-2"></div>
+    </section>
+
+    <hr class="border-secondary">
+
+    <!-- Crear nuevo post -->
+    <section class="mb-4">
+      <h2 class="h6 mb-2">Crear nuevo post</h2>
+      <form id="form-alerta" class="row g-2">
+        <div class="col-md-4">
+          <label for="titulo" class="form-label small">Título</label>
+          <input
+            id="titulo"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+            required
+          >
+        </div>
+        <div class="col-md-4">
+          <label for="imagen" class="form-label small">URL de imagen</label>
+          <input
+            id="imagen"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+            placeholder="https://..."
+            required
+          >
+        </div>
+        <div class="col-md-4">
+          <label for="url" class="form-label small">Link externo (opcional)</label>
+          <input
+            id="url"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+            placeholder="https://..."
+          >
+        </div>
+        <div class="col-12">
+          <label for="descripcion" class="form-label small">Descripción (opcional)</label>
+          <textarea
+            id="descripcion"
+            rows="2"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+          ></textarea>
+        </div>
+        <div class="col-12">
+          <label for="tags" class="form-label small">Etiquetas (coma)</label>
+          <input
+            id="tags"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+            placeholder="viaje, paisaje"
+          >
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-sm btn-success mt-2">
+            Guardar post
+          </button>
+        </div>
+      </form>
+      <!-- mensaje específico de la sección crear -->
+      <p id="msg-create" class="text-muted small mt-2"></p>
+    </section>
+
+    <hr class="border-secondary">
+
+    <!-- Actualizar post -->
+    <section class="mb-4">
+      <h2 class="h6 mb-2">Actualizar post</h2>
+      <form id="form-actualizar" class="row g-2">
+        <div class="col-md-2">
+          <label for="edit-id" class="form-label small">ID</label>
+          <input
+            id="edit-id"
+            type="number"
+            min="1"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+            required
+          >
+        </div>
+        <div class="col-md-4">
+          <label for="edit-titulo" class="form-label small">
+            Título (opcional)
+          </label>
+          <input
+            id="edit-titulo"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+          >
+        </div>
+        <div class="col-md-6">
+          <label for="edit-imagen" class="form-label small">
+            URL de imagen (opcional)
+          </label>
+          <input
+            id="edit-imagen"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+            placeholder="https://..."
+          >
+        </div>
+        <div class="col-md-6">
+          <label for="edit-url" class="form-label small">
+            Link externo (opcional)
+          </label>
+          <input
+            id="edit-url"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+            placeholder="https://..."
+          >
+        </div>
+        <div class="col-12">
+          <label for="edit-descripcion" class="form-label small">
+            Descripción (opcional)
+          </label>
+          <textarea
+            id="edit-descripcion"
+            rows="2"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+          ></textarea>
+        </div>
+        <div class="col-12">
+          <label for="edit-tags" class="form-label small">
+            Etiquetas (coma, opcional)
+          </label>
+          <input
+            id="edit-tags"
+            class="form-control form-control-sm bg-dark text-light border-secondary"
+            placeholder="viaje, paisaje"
+          >
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-sm btn-warning mt-2">
+            Actualizar post
+          </button>
+        </div>
+      </form>
+      <!-- mensaje específico de la sección editar -->
+      <p id="msg-edit" class="text-muted small mt-2"></p>
+    </section>
+
+  </main>
+
+  <!-- JS -->
+  <script src="api.js"></script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Script mini para manejar el usuario actual -->
+  <script>
+    (function () {
+      const input = document.getElementById("usuario-input");
+      const btn   = document.getElementById("btnSetUsuario");
+      const label = document.getElementById("usuario-actual-label");
+
+      function actualizarLabel() {
+        const u = sessionStorage.getItem("usuarioActual") || "anon";
+        label.textContent = u;
+      }
+
+      actualizarLabel();
+
+      btn.addEventListener("click", () => {
+        const nombre = (input.value || "").trim();
+        if (nombre) {
+          sessionStorage.setItem("usuarioActual", nombre);
+        } else {
+          sessionStorage.removeItem("usuarioActual");
+        }
+        actualizarLabel();
+      });
+    })();
+  </script>
+
+    <!-- Botón flotante Feed / Discover -->
+  <div
+    id="switcher"
+    style="
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      z-index: 1000;
+    "
+  >
+    <div class="btn-group">
+      <button id="btnFeed" class="btn btn-sm btn-light">Feed</button>
+      <button id="btnDiscover" class="btn btn-sm btn-light">Discover</button>
+    </div>
+  </div>
+
+  <!-- Script para navegación Feed / Discover -->
+  <script>
+    (function () {
+      // true si estamos en discover.html
+      const isDiscover = location.pathname.endsWith("discover.html");
+
+      const btnFeed = document.getElementById("btnFeed");
+      const btnDiscover = document.getElementById("btnDiscover");
+
+      btnFeed.addEventListener("click", () => {
+        if (isDiscover) {
+          // si estamos en discover, ir al feed
+          window.location.href = "index.html"; 
+        } else {
+          // si ya estamos en feed, solo recargar
+          window.location.reload();
+        }
+      });
+
+      btnDiscover.addEventListener("click", () => {
+        if (isDiscover) {
+          // si ya estamos en discover, solo recargar
+          window.location.reload();
+        } else {
+          // si estamos en feed, ir a discover
+          window.location.href = "discover.html";
+        }
+      });
+    })();
+  </script>
+
+  <a href="#top-index"
+    class="btn btn-success position-fixed bottom-0 end-0 m-4 shadow"
+    style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+    <span>^</span>
+  </a>
+
+</body>
+</html>
+
+
