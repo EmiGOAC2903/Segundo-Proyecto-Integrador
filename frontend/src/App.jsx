@@ -8,15 +8,16 @@ const isLocal =
   window.location.hostname === "localhost";
 
 const API = isLocal
-  ? "http://127.0.0.1:8000" // localhost
+  ? "http://127.0.0.1:8000"
   : "http://127.0.0.1:8000"; // cambiar por dominio cuando esté en producción
 
 function getUsuarioActual() {
+  // unificado (no mezclar "anon"/"anonymus")
   return sessionStorage.getItem("usuarioActual") || "anon";
 }
 
-// ---------------------- CARDS ----------------------
-function PostCard({ post }) {
+// ---------------------- CARD ----------------------
+function PostCard({ post, onEdit, onDelete }) {
   const fecha = new Date(post.fecha_alta || post.fecha || post.timestamp);
   const when = fecha.toLocaleDateString("es-MX", {
     day: "numeric",
@@ -53,17 +54,8 @@ function PostCard({ post }) {
   );
 
   const usuarioActual = getUsuarioActual();
-  const esMio = post.usuario === usuarioActual;
-
-  console.log(
-    "[PostCard] usuarioActual:", usuarioActual,
-    "| post.usuario:", post.usuario,
-    "| esMio:", esMio,
-    "| post.id:", post.id
-  );
-
-
-
+  const esMio =
+    (post.usuario || "").trim() === (usuarioActual || "").trim();
 
   return (
     <div className="col-12 col-sm-6 col-lg-4">
@@ -74,23 +66,40 @@ function PostCard({ post }) {
           <p className="small text-muted">
             {when} · Publicado por: <strong>{post.usuario}</strong>
           </p>
-          {post.descripcion && <p className="card-text">{post.descripcion}</p>}
-          {post.url && (
-            <a
-              href={post.url}
-              className="btn btn-success btn-sm"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Ver más
-            </a>
-          )}
 
-          {esMio && (
-            <button className="btn btn-outline-warning btn-sm ms-2">
-              Editar
-            </button>
-          )}
+          {post.descripcion && <p className="card-text">{post.descripcion}</p>}
+
+          <div className="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+            {post.url && (
+              <a
+                href={post.url}
+                className="btn btn-success btn-sm"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Ver más
+              </a>
+            )}
+
+            {esMio && (
+              <button
+                className="btn btn-outline-warning btn-sm"
+                onClick={() => onEdit && onEdit(post)}
+              >
+                Editar
+              </button>
+            )}
+
+            {esMio && (
+              <button
+                className="btn btn-outline-danger btn-sm"
+                onClick={() => onDelete && onDelete(post)}
+              >
+                Eliminar
+              </button>
+            )}
+          </div>
+
           {tags.length > 0 && <div className="mt-2">{tags}</div>}
         </div>
       </div>
@@ -132,10 +141,7 @@ function UserSelector() {
           />
         </div>
         <div className="col-sm-6 col-md-4">
-          <button
-            onClick={actualizarUsuario}
-            className="btn btn-sm btn-success"
-          >
+          <button onClick={actualizarUsuario} className="btn btn-sm btn-success">
             Usar este usuario
           </button>
         </div>
@@ -310,9 +316,7 @@ function CreatePostForm({ onCreated }) {
           />
         </div>
         <div className="col-12">
-          <label className="form-label small">
-            Descripción (opcional)
-          </label>
+          <label className="form-label small">Descripción (opcional)</label>
           <textarea
             rows="2"
             className="form-control form-control-sm bg-dark text-light border-secondary"
@@ -340,9 +344,10 @@ function CreatePostForm({ onCreated }) {
   );
 }
 
-// ---------------------- ACTUALIZAR POST ----------------------
-function UpdatePostForm({ onUpdated }) {
-  const [id, setId] = useState("");
+// ---------------------- ACTUALIZAR POST (sin input de ID) ----------------------
+function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
+  const [editingId, setEditingId] = useState(null);
+
   const [titulo, setTitulo] = useState("");
   const [imagen, setImagen] = useState("");
   const [url, setUrl] = useState("");
@@ -350,12 +355,28 @@ function UpdatePostForm({ onUpdated }) {
   const [tagsStr, setTagsStr] = useState("");
   const [msg, setMsg] = useState("");
 
+  // Autofill cuando seleccionas "Editar"
+  useEffect(() => {
+    if (!editingPost) return;
+
+    setEditingId(editingPost.id);
+    setTitulo(editingPost.titulo || "");
+    setImagen(editingPost.imagen || "");
+    setUrl(editingPost.url || "");
+    setDescripcion(editingPost.descripcion || "");
+    setTagsStr(
+      Array.isArray(editingPost.tags) ? editingPost.tags.join(", ") : ""
+    );
+
+    setMsg(`Editando post #${editingPost.id}`);
+  }, [editingPost]);
+
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const postId = Number(id);
+    const postId = editingId;
     if (!postId) {
-      setMsg("Debes indicar el ID del post a actualizar.");
+      setMsg("Selecciona un post para editar (usa el botón Editar).");
       return;
     }
 
@@ -401,7 +422,10 @@ function UpdatePostForm({ onUpdated }) {
         return;
       }
 
-      setId("");
+      // limpiar edición
+      setEditingId(null);
+      clearEditing && clearEditing();
+
       setTitulo("");
       setImagen("");
       setUrl("");
@@ -418,19 +442,30 @@ function UpdatePostForm({ onUpdated }) {
 
   return (
     <section className="mb-4">
-      <h2 className="h6 mb-2">Actualizar post</h2>
+      <div className="d-flex justify-content-between align-items-center">
+        <h2 className="h6 mb-2">Actualizar post</h2>
+
+        {editingId && (
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => {
+              setEditingId(null);
+              clearEditing && clearEditing();
+              setTitulo("");
+              setImagen("");
+              setUrl("");
+              setDescripcion("");
+              setTagsStr("");
+              setMsg("Edición cancelada.");
+            }}
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
+
       <form onSubmit={handleSubmit} className="row g-2">
-        <div className="col-md-2">
-          <label className="form-label small">ID</label>
-          <input
-            type="number"
-            min="1"
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            required
-          />
-        </div>
         <div className="col-md-4">
           <label className="form-label small">Título (opcional)</label>
           <input
@@ -440,9 +475,7 @@ function UpdatePostForm({ onUpdated }) {
           />
         </div>
         <div className="col-md-6">
-          <label className="form-label small">
-            URL de imagen (opcional)
-          </label>
+          <label className="form-label small">URL de imagen (opcional)</label>
           <input
             className="form-control form-control-sm bg-dark text-light border-secondary"
             placeholder="https://..."
@@ -451,9 +484,7 @@ function UpdatePostForm({ onUpdated }) {
           />
         </div>
         <div className="col-md-6">
-          <label className="form-label small">
-            Link externo (opcional)
-          </label>
+          <label className="form-label small">Link externo (opcional)</label>
           <input
             className="form-control form-control-sm bg-dark text-light border-secondary"
             placeholder="https://..."
@@ -462,9 +493,7 @@ function UpdatePostForm({ onUpdated }) {
           />
         </div>
         <div className="col-12">
-          <label className="form-label small">
-            Descripción (opcional)
-          </label>
+          <label className="form-label small">Descripción (opcional)</label>
           <textarea
             rows="2"
             className="form-control form-control-sm bg-dark text-light border-secondary"
@@ -473,9 +502,7 @@ function UpdatePostForm({ onUpdated }) {
           />
         </div>
         <div className="col-12">
-          <label className="form-label small">
-            Etiquetas (coma, opcional)
-          </label>
+          <label className="form-label small">Etiquetas (coma, opcional)</label>
           <input
             className="form-control form-control-sm bg-dark text-light border-secondary"
             placeholder="viaje, paisaje"
@@ -489,29 +516,33 @@ function UpdatePostForm({ onUpdated }) {
           </button>
         </div>
       </form>
+
       <p className="text-muted small mt-2">{msg}</p>
     </section>
   );
 }
 
-// ---------------------- FEED PAGE (usa /api/posts) ----------------------
+// ---------------------- FEED PAGE ----------------------
 function FeedPage() {
   const [paginaActual, setPaginaActual] = useState(0);
   const [posts, setPosts] = useState([]);
   const [msg, setMsg] = useState("Cargando...");
   const [busquedaPost, setBusquedaPost] = useState(null);
 
+  const [editingPost, setEditingPost] = useState(null);
+
   const limit = 9;
 
   useEffect(() => {
     cargar(paginaActual);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paginaActual]);
 
   async function cargar(pagina = 0) {
     pagina = Number(pagina) || 0;
     const skip = pagina * limit;
 
-    let url = `${API}/api/posts?skip=${skip}&limit=${limit}`;
+    const url = `${API}/api/posts?skip=${skip}&limit=${limit}`;
 
     try {
       setMsg("Cargando posts...");
@@ -528,25 +559,77 @@ function FeedPage() {
     }
   }
 
+  function startEdit(post) {
+    setEditingPost(post);
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  }
+
+  function clearEditing() {
+    setEditingPost(null);
+  }
+
+  async function handleDelete(post) {
+    const ok = window.confirm(`¿Eliminar el post #${post.id}?`);
+    if (!ok) return;
+
+    const usuarioActual = getUsuarioActual();
+
+    try {
+      const res = await fetch(`${API}/api/posts/${post.id}`, {
+        method: "DELETE",
+        headers: {
+          "X-User": usuarioActual,
+        },
+      });
+
+      if (res.status === 403) {
+        alert("No tienes permisos para eliminar este post.");
+        return;
+      }
+
+      if (res.status === 404) {
+        alert("Post no encontrado.");
+        return;
+      }
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error("Error backend:", errText);
+        alert("Error al eliminar el post.");
+        return;
+      }
+
+      // si estabas editando este post, limpia edición
+      if (editingPost?.id === post.id) clearEditing();
+
+      await cargar(paginaActual);
+    } catch (e) {
+      console.error(e);
+      alert("No se pudo eliminar el post.");
+    }
+  }
+
   return (
     <>
       <UserSelector />
 
-      {/* Mensaje del feed */}
       <section className="mb-2">
         <p className="text-muted small">{msg}</p>
       </section>
 
-      {/* GRID DE POSTS */}
       <section className="mb-2">
         <div className="row g-3">
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard
+              key={post.id}
+              post={post}
+              onEdit={startEdit}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       </section>
 
-      {/* PAGINACIÓN */}
       <section className="mb-4">
         <div className="d-flex justify-content-center gap-2">
           <button
@@ -573,7 +656,6 @@ function FeedPage() {
 
       <hr className="border-secondary" />
 
-      {/* Buscar por ID */}
       <SearchById onResult={setBusquedaPost} />
       {busquedaPost && (
         <div className="mt-2 mb-4">
@@ -591,12 +673,15 @@ function FeedPage() {
 
       <hr className="border-secondary" />
 
-      {/* Crear y actualizar */}
       <CreatePostForm onCreated={() => cargar(paginaActual)} />
 
       <hr className="border-secondary" />
 
-      <UpdatePostForm onUpdated={() => cargar(paginaActual)} />
+      <UpdatePostForm
+        onUpdated={() => cargar(paginaActual)}
+        editingPost={editingPost}
+        clearEditing={clearEditing}
+      />
     </>
   );
 }
@@ -605,17 +690,11 @@ function FeedPage() {
 function makeShortTitle(text) {
   if (!text) return "Imagen de Unsplash";
 
-  // 1. quitar URLs
   let t = text.replace(/https?:\/\/\S+/g, "").trim();
-
-  // 2. cortar en el primer paréntesis / guion / barra / punto, si existe
   t = t.split(/[()\-|•·]/)[0].trim();
 
-  // 3. si sigue muy largo, truncar a 60 caracteres
   const MAX = 60;
-  if (t.length > MAX) {
-    t = t.slice(0, MAX - 3).trim() + "...";
-  }
+  if (t.length > MAX) t = t.slice(0, MAX - 3).trim() + "...";
 
   return t || "Imagen de Unsplash";
 }
@@ -638,7 +717,7 @@ function unsplashToPost(img) {
   };
 }
 
-// ---------------------- DISCOVER PAGE (usa /api/discover) ----------------------
+// ---------------------- DISCOVER PAGE ----------------------
 function DiscoverPage() {
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(0);
@@ -651,7 +730,6 @@ function DiscoverPage() {
   async function cargar({ append } = { append: false }) {
     if (isLoading) return;
 
-    // si ya llegamos al máximo y es "cargar más", no pegamos al backend
     if (append && loaded >= DISCOVER_MAX) {
       setMsg("Ya se cargaron todas las imágenes permitidas.");
       return;
@@ -669,11 +747,10 @@ function DiscoverPage() {
       const res = await fetch(`${API}/api/discover?count=${count}`);
       if (!res.ok) {
         setMsg("Error al obtener imágenes de Unsplash.");
-        setIsLoading(false);
         return;
       }
 
-      const data = await res.json(); // array de DiscoverImage
+      const data = await res.json();
       const posts = data.map(unsplashToPost);
 
       setItems((prev) => (append ? [...prev, ...posts] : posts));
@@ -689,7 +766,6 @@ function DiscoverPage() {
     }
   }
 
-  // primera carga al entrar a /discover
   useEffect(() => {
     cargar({ append: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -722,16 +798,14 @@ function DiscoverPage() {
         {msg}
       </p>
 
-      {/* Grid de tarjetas usando el mismo PostCard que el feed */}
       <section className="mb-3">
         <div id="discover-contenido" className="row g-3">
           {items.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard key={post.id} post={post} onEdit={null} onDelete={null} />
           ))}
         </div>
       </section>
 
-      {/* Botón "Cargar más" abajo */}
       <div className="text-center mt-3 mb-4">
         <button
           id="btnDiscoverLoad"
@@ -745,7 +819,6 @@ function DiscoverPage() {
     </>
   );
 }
-
 
 // ---------------------- BOTONES FLOTANTES ----------------------
 function Switcher() {
