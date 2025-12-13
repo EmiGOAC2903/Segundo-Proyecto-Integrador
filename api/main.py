@@ -92,46 +92,71 @@ def seed():
             id=NEXT_ID,
             usuario="admin",
             fecha_alta=datetime(2025, 10, 24, 0, 0, 0),
-            titulo="Atardecer en la ciudad",
+            titulo="City sunset",
             imagen="img-seed/city-sunset.jpg",
-            descripcion="Un atardecer naranja en la ciudad con rascacielos.",
+            descripcion="Beautiful sunset over the city skyline with skyscrapers.",
             url=None,
-            tags=["ciudad", "atardecer", "paisaje"],
-            alt="Foto de un atardecer en la ciudad"
+            tags=["city", "sunset", "landscape"],
+            alt="Picture of a city sunset with skyscrapers"
         ),
         Post(
             id=NEXT_ID + 1,
             usuario="admin",
             fecha_alta=datetime(2025, 10, 24, 0, 1, 0),
-            titulo="Café y estudio",
+            titulo="Cozy coffee study",
             imagen="img-seed/coffee-study.jpg",
-            descripcion="Escritorio con una laptop, café y apuntes.",
+            descripcion="Cup of coffee next to a laptop on a wooden desk.",
             url=None,
-            tags=["estudio", "café", "productividad"],
-            alt="Taza de café junto a una laptop"
+            tags=["study", "coffee", "productivity"],
+            alt="Picture of a cup of coffee next to a laptop on a wooden desk"
         ),
         Post(
             id=NEXT_ID + 2,
             usuario="tania",
-            fecha_alta=datetime(2025, 10, 23, 0, 0, 0),
-            titulo="Paisaje de montaña",
-            imagen="img-seed/mountain-landscape.jpg",
-            descripcion="Montañas nevadas y un lago tranquilo.",
+            fecha_alta=datetime(2025, 10, 22, 0, 0, 0),
+            titulo="Dog walking in snowy field",
+            imagen="img-seed/perro-caminando-campo-nevado.avif",
+            descripcion="A dog walking through a snowy field during winter.",
             url=None,
-            tags=["montaña", "naturaleza", "viaje"],
-            alt="Montañas nevadas frente a un lago"
+            tags=["dog", "snow", "nature"],
+            alt="Picture of a dog walking in a snowy field"
         ),
         Post(
             id=NEXT_ID + 3,
             usuario="tania",
-            fecha_alta=datetime(2025, 10, 22, 0, 0, 0),
-            titulo="Setup minimalista",
-            imagen="img-seed/minimal-setup.jpg",
-            descripcion="Escritorio minimalista con monitor y accesorios.",
+            fecha_alta=datetime(2025, 10, 23, 0, 0, 0),
+            titulo="Beautiful mountain landscape",
+            imagen="img-seed/mountain-landscape.jpg",
+            descripcion="Snowy mountains overlooking a calm lake.",
             url=None,
-            tags=["setup", "minimalismo", "tecnología"],
-            alt="Escritorio minimalista con monitor"
+            tags=["mountain", "nature", "travel"],
+            alt="Picture of snowy mountains overlooking a calm lake"
         ),
+        Post(
+            id=NEXT_ID + 4,
+            usuario="tania",
+            fecha_alta=datetime(2025, 10, 22, 0, 0, 0),
+            titulo="Bernese Mountain Dog",
+            imagen="img-seed/perrito.jpg",
+            descripcion="A cute Bernese Mountain puppy in the snow.",
+            url=None,
+            tags=["dog", "snow", "animals"],
+            alt="Picture of a Bernese Mountain puppy in the snow"
+        ),
+        Post(
+            id=NEXT_ID + 5,
+            usuario="tania",
+            fecha_alta=datetime(2025, 10, 22, 0, 0, 0),
+            titulo="Minimalist desk setup",
+            imagen="img-seed/desk-setup.webp",
+            descripcion="Minimalist desk setup with monitor and accessories.",
+            url=None,
+            tags=["setup", "minimalism", "technology"],
+            alt="Picture of a minimalist desk setup with monitor and accessories"
+        ),
+        
+        
+        
     ]
 
     DB.extend(posts_iniciales)

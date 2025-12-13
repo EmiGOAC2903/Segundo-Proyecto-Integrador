@@ -724,21 +724,12 @@ function DiscoverPage() {
   const [msg, setMsg] = useState("Cargando imágenes...");
   const [isLoading, setIsLoading] = useState(false);
 
-  const DISCOVER_MAX = 27;
   const DISCOVER_CHUNK = 9;
 
   async function cargar({ append } = { append: false }) {
     if (isLoading) return;
 
-    if (append && loaded >= DISCOVER_MAX) {
-      setMsg("Ya se cargaron todas las imágenes permitidas.");
-      return;
-    }
-
-    const remaining = DISCOVER_MAX - loaded;
-    const count = append
-      ? Math.min(DISCOVER_CHUNK, remaining)
-      : DISCOVER_CHUNK;
+    const count = DISCOVER_CHUNK;
 
     try {
       setIsLoading(true);
@@ -757,7 +748,8 @@ function DiscoverPage() {
 
       const nuevoTotal = append ? loaded + data.length : data.length;
       setLoaded(nuevoTotal);
-      setMsg(`Se han cargado ${nuevoTotal} imágenes (máx ${DISCOVER_MAX}).`);
+
+      setMsg(`Se han cargado ${nuevoTotal} imágenes.`);
     } catch (err) {
       console.error(err);
       setMsg("No se pudieron cargar las imágenes.");
@@ -770,8 +762,6 @@ function DiscoverPage() {
     cargar({ append: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const puedeCargarMas = loaded < DISCOVER_MAX;
 
   function handleReload() {
     setItems([]);
@@ -811,14 +801,15 @@ function DiscoverPage() {
           id="btnDiscoverLoad"
           className="btn btn-sm btn-outline-light"
           onClick={() => cargar({ append: true })}
-          disabled={!puedeCargarMas || isLoading}
+          disabled={isLoading}
         >
-          {puedeCargarMas ? "Cargar más" : "No hay más por cargar"}
+          Cargar más
         </button>
       </div>
     </>
   );
 }
+
 
 // ---------------------- BOTONES FLOTANTES ----------------------
 function Switcher() {
