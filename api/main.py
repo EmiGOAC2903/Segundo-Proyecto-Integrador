@@ -113,6 +113,17 @@ def seed():
         Post(
             id=NEXT_ID + 2,
             usuario="tania",
+            fecha_alta=datetime(2025, 10, 22, 0, 0, 0),
+            titulo="Dog walking in snowy field",
+            imagen="img-seed/perro-caminando-campo-nevado.avif",
+            descripcion="A dog walking through a snowy field during winter.",
+            url=None,
+            tags=["dog", "snow", "nature"],
+            alt="Picture of a dog walking in a snowy field"
+        ),
+        Post(
+            id=NEXT_ID + 3,
+            usuario="tania",
             fecha_alta=datetime(2025, 10, 23, 0, 0, 0),
             titulo="Beautiful mountain landscape",
             imagen="img-seed/mountain-landscape.jpg",
@@ -122,28 +133,30 @@ def seed():
             alt="Picture of snowy mountains overlooking a calm lake"
         ),
         Post(
-            id=NEXT_ID + 3,
+            id=NEXT_ID + 4,
+            usuario="tania",
+            fecha_alta=datetime(2025, 10, 22, 0, 0, 0),
+            titulo="Bernese Mountain Dog",
+            imagen="img-seed/perrito.jpg",
+            descripcion="A cute Bernese Mountain puppy in the snow.",
+            url=None,
+            tags=["dog", "snow", "animals"],
+            alt="Picture of a Bernese Mountain puppy in the snow"
+        ),
+        Post(
+            id=NEXT_ID + 5,
             usuario="tania",
             fecha_alta=datetime(2025, 10, 22, 0, 0, 0),
             titulo="Minimalist desk setup",
-            imagen="img-seed/minimal-setup.jpg",
+            imagen="img-seed/desk-setup.webp",
             descripcion="Minimalist desk setup with monitor and accessories.",
             url=None,
             tags=["setup", "minimalism", "technology"],
             alt="Picture of a minimalist desk setup with monitor and accessories"
         ),
         
-        Post(
-            id=NEXT_ID + 4,
-            usuario="tania",
-            fecha_alta=datetime(2025, 10, 22, 0, 0, 0),
-            titulo="Dog walking in snowy field",
-            imagen="img-seed/perro-caminando-campo-nevado.avif",
-            descripcion="A dog walking through a snowy field during winter.",
-            url=None,
-            tags=["dog", "snow", "nature"],
-            alt="Picture of a dog walking in a snowy field"
-        ),
+        
+        
     ]
 
     DB.extend(posts_iniciales)
