@@ -49,7 +49,7 @@ El objetivo del proyecto es incorporar los temas vistos en clase y reforzar las 
 - Health endpoint (API): PENDIENTE
 
 ## Live demo
-- Video: PENDIENTE
+- Video: Se agendó una cita con el profesor para el 14 de diciembre 2025 a las 7:00pm
 
 ## Health endpoint (API)
 El health endpoint se usa para verificar que el back-end está corriendo correctamente.
