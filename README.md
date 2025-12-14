@@ -2,26 +2,27 @@
 Este repositorio es para el segundo proyecto de Introducción al Desarrollo Web
 
 ## Integrantes del equipo
-<div style="display:flex; gap:24px; flex-wrap:wrap;">
-  <div style="text-align:center;">
-    <img src="imagenesReadME/Mariela.jpg" width="140" alt="Mariela">
-    <div>Mariela Mejía Gutiérrez - 201373</div>
-  </div>
+<table>
+  <tr>
+    <td align="center" valign="top">
+      <img src="imagenesReadME/Mariela.jpg" width="160" alt="Mariela"><br>
+      <sub><b>Mariela Mejía Gutiérrez</b><br>201373</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="imagenesReadME/Tania.jpeg" width="160" alt="Tania"><br>
+      <sub><b>Tania Mendoza González</b><br>208375</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="imagenesReadME/Emilio.jpeg" width="160" alt="Emilio"><br>
+      <sub><b>Emilio González Acosta</b><br>207911</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="imagenesReadME/Lugo.jpeg" width="160" alt="Carlos"><br>
+      <sub><b>Carlos Lugo Torres</b><br>207647</sub>
+    </td>
+  </tr>
+</table>
 
-  <div style="text-align:center;">
-    <img src="imagenesReadME/Tania.jpeg" width="180" alt="Tania">
-    <div>Tania Mendoza González - 208375  </div>
-  </div>
-
-  <div style="text-align:center;">
-    <img src="imagenesReadME/Emilio.jpeg" width="180" alt="Emilio">
-    <div>Emilio González Acosta - 207911</div>
-  </div>
-  <div style="text-align:center;">
-    <img src="imagenesReadME/Lugo.jpeg" width="145" alt="Carlos">
-    <div>Carlos Lugo Torres - 207647</div>
-  </div>
-</div>
 
 ## Resumen del producto
 ### Proyecto elegido
