@@ -7,9 +7,11 @@ const isLocal =
   window.location.hostname === "127.0.0.1" ||
   window.location.hostname === "localhost";
 
-const API = isLocal
+/*const API = isLocal
   ? "http://127.0.0.1:8000"
-  : "http://127.0.0.1:8000"; // cambiar por dominio cuando esté en producción
+  : "http://127.0.0.1:8000"; // cambiar por dominio cuando esté en producción */
+
+const API = "http://localhost:8000"; // backend FastAPI
 
 function getUsuarioActual() {
   return sessionStorage.getItem("usuarioActual") || "anon";
@@ -945,10 +947,10 @@ function Switcher() {
       }}
     >
       <div className="btn-group">
-        <button onClick={goFeed} className="btn btn-sm btn-light">
+        <button onClick={goFeed} className="btn btn-sm pm-float-toggle">
           Feed
         </button>
-        <button onClick={goDiscover} className="btn btn-sm btn-light">
+        <button onClick={goDiscover} className="btn btn-sm pm-float-toggle">
           Discover
         </button>
       </div>
