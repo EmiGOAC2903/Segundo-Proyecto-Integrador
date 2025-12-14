@@ -12,12 +12,11 @@ const API = isLocal
   : "http://127.0.0.1:8000"; // cambiar por dominio cuando esté en producción
 
 function getUsuarioActual() {
-  // unificado (no mezclar "anon"/"anonymus")
   return sessionStorage.getItem("usuarioActual") || "anon";
 }
 
 // ---------------------- CARD ----------------------
-function PostCard({ post, onEdit, onDelete }) {
+function PostCard({ post, onEdit, onDelete, usuarioActual }) {
   const fecha = new Date(post.fecha_alta || post.fecha || post.timestamp);
   const when = fecha.toLocaleDateString("es-MX", {
     day: "numeric",
@@ -32,12 +31,12 @@ function PostCard({ post, onEdit, onDelete }) {
   ));
 
   const hasImage = post.imagen && post.imagen.trim() !== "";
-
   const img = hasImage ? (
     <img
       src={post.imagen}
       className="card-img-top"
       alt={post.alt || post.titulo}
+      loading="lazy"
       onError={(e) => {
         console.warn("Imagen no encontrada:", e.currentTarget.src);
         e.currentTarget.remove();
@@ -53,75 +52,72 @@ function PostCard({ post, onEdit, onDelete }) {
     img
   );
 
-  const usuarioActual = getUsuarioActual();
-  const esMio =
-    (post.usuario || "").trim() === (usuarioActual || "").trim();
+  const esMio = (post.usuario || "").trim() === (usuarioActual || "").trim();
 
   return (
-    <div className="col-12 col-sm-6 col-lg-4">
-      <div className="card bg-dark text-light border-0 h-100">
-        {content}
-        <div className="card-body">
-          <h5 className="card-title">{post.titulo}</h5>
-          <p className="small text-muted">
-            {when} · Publicado por: <strong>{post.usuario}</strong>
-          </p>
+    <div className="card bg-dark text-light border-0">
+      {content}
 
-          {post.descripcion && <p className="card-text">{post.descripcion}</p>}
+      <div className="card-body">
+        <h5 className="card-title">{post.titulo}</h5>
 
-          <div className="d-flex justify-content-center align-items-center gap-2 flex-wrap">
-            {post.url && (
-              <a
-                href={post.url}
-                className="btn btn-success btn-sm"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Ver más
-              </a>
-            )}
+        <p className="small text-muted">
+          {when} · Publicado por: <strong>{post.usuario}</strong>
+        </p>
 
-            {esMio && (
-              <button
-                className="btn btn-outline-warning btn-sm"
-                onClick={() => onEdit && onEdit(post)}
-              >
-                Editar
-              </button>
-            )}
+        {post.descripcion && <p className="card-text">{post.descripcion}</p>}
 
-            {esMio && (
-              <button
-                className="btn btn-outline-danger btn-sm"
-                onClick={() => onDelete && onDelete(post)}
-              >
-                Eliminar
-              </button>
-            )}
-          </div>
+        <div className="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+          {post.url && (
+            <a
+              href={post.url}
+              className="btn btn-success btn-sm"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Ver más
+            </a>
+          )}
 
-          {tags.length > 0 && <div className="mt-2">{tags}</div>}
+          {esMio && (
+            <button
+              className="btn btn-outline-warning btn-sm"
+              onClick={() => onEdit && onEdit(post)}
+            >
+              Editar
+            </button>
+          )}
+
+          {esMio && (
+            <button
+              className="btn btn-outline-danger btn-sm"
+              onClick={() => onDelete && onDelete(post)}
+            >
+              Eliminar
+            </button>
+          )}
         </div>
+
+        {tags.length > 0 && <div className="mt-2">{tags}</div>}
       </div>
     </div>
   );
 }
 
 // ---------------------- USER SELECTOR ----------------------
-function UserSelector() {
+function UserSelector({ usuarioActual, setUsuarioActual }) {
   const [input, setInput] = useState("");
-  const [usuarioActual, setUsuarioActual] = useState("anon");
 
   useEffect(() => {
-    const u = sessionStorage.getItem("usuarioActual") || "anon";
-    setUsuarioActual(u);
-  }, []);
+    setInput(usuarioActual === "anon" ? "" : usuarioActual);
+  }, [usuarioActual]);
 
   function actualizarUsuario() {
     const nombre = input.trim();
+
     if (nombre) {
       sessionStorage.setItem("usuarioActual", nombre);
-      setUsuarioActual(nombre);
+      setUsuarioActual(nombre); // fuerza re-render inmediato
     } else {
       sessionStorage.removeItem("usuarioActual");
       setUsuarioActual("anon");
@@ -130,7 +126,6 @@ function UserSelector() {
 
   return (
     <section className="mb-4">
-      <h1 className="h4 mb-3">Mini feed tipo Pinterest</h1>
       <div className="row g-2 align-items-center">
         <div className="col-sm-6 col-md-4">
           <input
@@ -140,11 +135,13 @@ function UserSelector() {
             placeholder="nombre de usuario (ej. tania)"
           />
         </div>
+
         <div className="col-sm-6 col-md-4">
           <button onClick={actualizarUsuario} className="btn btn-sm btn-success">
             Usar este usuario
           </button>
         </div>
+
         <div className="col-12 mt-2">
           <small className="text-muted">
             Usuario actual: <strong>{usuarioActual}</strong>
@@ -187,7 +184,7 @@ function SearchById({ onResult }) {
   }
 
   return (
-    <section className="mb-4">
+    <section id="buscar" className="mb-4">
       <h2 className="h6 mb-2">Buscar post por ID</h2>
       <form onSubmit={handleSubmit} className="row g-2">
         <div className="col-sm-4 col-md-3">
@@ -284,7 +281,7 @@ function CreatePostForm({ onCreated }) {
   }
 
   return (
-    <section className="mb-4">
+    <section id="crear" className="mb-4">
       <h2 className="h6 mb-2">Crear nuevo post</h2>
       <form onSubmit={handleSubmit} className="row g-2">
         <div className="col-md-4">
@@ -344,7 +341,7 @@ function CreatePostForm({ onCreated }) {
   );
 }
 
-// ---------------------- ACTUALIZAR POST (sin input de ID) ----------------------
+// ---------------------- ACTUALIZAR POST ----------------------
 function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
   const [editingId, setEditingId] = useState(null);
 
@@ -355,7 +352,6 @@ function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
   const [tagsStr, setTagsStr] = useState("");
   const [msg, setMsg] = useState("");
 
-  // Autofill cuando seleccionas "Editar"
   useEffect(() => {
     if (!editingPost) return;
 
@@ -364,9 +360,7 @@ function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
     setImagen(editingPost.imagen || "");
     setUrl(editingPost.url || "");
     setDescripcion(editingPost.descripcion || "");
-    setTagsStr(
-      Array.isArray(editingPost.tags) ? editingPost.tags.join(", ") : ""
-    );
+    setTagsStr(Array.isArray(editingPost.tags) ? editingPost.tags.join(", ") : "");
 
     setMsg(`Editando post #${editingPost.id}`);
   }, [editingPost]);
@@ -422,7 +416,6 @@ function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
         return;
       }
 
-      // limpiar edición
       setEditingId(null);
       clearEditing && clearEditing();
 
@@ -441,7 +434,7 @@ function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
   }
 
   return (
-    <section className="mb-4">
+    <section id="editar" className="mb-4">
       <div className="d-flex justify-content-between align-items-center">
         <h2 className="h6 mb-2">Actualizar post</h2>
 
@@ -524,6 +517,8 @@ function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
 
 // ---------------------- FEED PAGE ----------------------
 function FeedPage() {
+  const location = useLocation();
+
   const [paginaActual, setPaginaActual] = useState(0);
   const [posts, setPosts] = useState([]);
   const [msg, setMsg] = useState("Cargando...");
@@ -531,12 +526,21 @@ function FeedPage() {
 
   const [editingPost, setEditingPost] = useState(null);
 
+  const [usuarioActual, setUsuarioActual] = useState(getUsuarioActual());
+
   const limit = 9;
 
   useEffect(() => {
     cargar(paginaActual);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paginaActual]);
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const id = location.hash.replace("#", "");
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [location.hash]);
 
   async function cargar(pagina = 0) {
     pagina = Number(pagina) || 0;
@@ -572,8 +576,6 @@ function FeedPage() {
     const ok = window.confirm(`¿Eliminar el post #${post.id}?`);
     if (!ok) return;
 
-    const usuarioActual = getUsuarioActual();
-
     try {
       const res = await fetch(`${API}/api/posts/${post.id}`, {
         method: "DELETE",
@@ -599,7 +601,6 @@ function FeedPage() {
         return;
       }
 
-      // si estabas editando este post, limpia edición
       if (editingPost?.id === post.id) clearEditing();
 
       await cargar(paginaActual);
@@ -611,21 +612,24 @@ function FeedPage() {
 
   return (
     <>
-      <UserSelector />
+      <UserSelector usuarioActual={usuarioActual} setUsuarioActual={setUsuarioActual} />
 
       <section className="mb-2">
         <p className="text-muted small">{msg}</p>
       </section>
 
+      {/* MASONRY */}
       <section className="mb-2">
-        <div className="row g-3">
+        <div className="pm-masonry">
           {posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onEdit={startEdit}
-              onDelete={handleDelete}
-            />
+            <div className="pm-masonry-item" key={post.id}>
+              <PostCard
+                post={post}
+                onEdit={startEdit}
+                onDelete={handleDelete}
+                usuarioActual={usuarioActual}
+              />
+            </div>
           ))}
         </div>
       </section>
@@ -639,12 +643,14 @@ function FeedPage() {
           >
             Anterior
           </button>
+
           <button
             className="btn btn-outline-light btn-sm"
             onClick={() => setPaginaActual((p) => p + 1)}
           >
             Siguiente
           </button>
+
           <button
             className="btn btn-outline-success btn-sm"
             onClick={() => cargar(paginaActual)}
@@ -699,7 +705,6 @@ function makeShortTitle(text) {
   return t || "Imagen de Unsplash";
 }
 
-// Convierte DiscoverImage (backend) -> "post" para reutilizar <PostCard />
 function unsplashToPost(img) {
   const desc = img.descripcion || "Imagen de Unsplash";
   const tituloCorto = makeShortTitle(desc);
@@ -772,8 +777,6 @@ function DiscoverPage() {
   return (
     <>
       <div className="d-flex justify-content-between align-items-center mb-2">
-        <h1 className="h4 mb-0">Discover (Unsplash)</h1>
-
         <button
           id="btnDiscoverReload"
           className="btn btn-sm btn-outline-light"
@@ -788,10 +791,13 @@ function DiscoverPage() {
         {msg}
       </p>
 
+      {/* MASONRY */}
       <section className="mb-3">
-        <div id="discover-contenido" className="row g-3">
+        <div className="pm-masonry">
           {items.map((post) => (
-            <PostCard key={post.id} post={post} onEdit={null} onDelete={null} />
+            <div className="pm-masonry-item" key={post.id}>
+              <PostCard post={post} onEdit={null} onDelete={null} usuarioActual="__none__" />
+            </div>
           ))}
         </div>
       </section>
@@ -810,8 +816,7 @@ function DiscoverPage() {
   );
 }
 
-
-// ---------------------- BOTONES FLOTANTES ----------------------
+// --------------------- Botones flotantes -----------------
 function Switcher() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -849,39 +854,106 @@ function Switcher() {
   );
 }
 
+// ---------------------- BACK TO TOP ----------------------
 function BackToTopButton() {
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
     <button
       onClick={scrollTop}
-      className="btn btn-success position-fixed bottom-0 end-0 m-4 shadow"
+      className="btn position-fixed bottom-0 end-0 m-4 shadow pm-to-top"
       style={{
-        width: "30px",
-        height: "30px",
+        width: "34px",
+        height: "34px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        background: "var(--pm-teal)",
+        borderColor: "var(--pm-teal)",
+        color: "#fff",
+        borderRadius: "10px",
       }}
+      aria-label="Scroll to top"
+      title="Arriba"
     >
       ^
     </button>
   );
 }
 
+// ---------------------- NAVBAR ----------------------
+function TopNav() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isDiscover = location.pathname === "/discover";
+
+  const pageLabel = isDiscover ? "Discover" : "Feed";
+
+  return (
+    <nav className="navbar navbar-expand-lg navbar-dark pc-navbar fixed-top shadow-sm">
+      <div className="container position-relative">
+        <button
+          className="navbar-brand btn btn-link text-decoration-none text-light p-0 pc-brand d-flex align-items-center gap-2"
+          onClick={() => navigate("/")}
+          type="button"
+        >
+          <img src="/logo.png" alt="PixelMind logo" className="pc-logo" />
+          <span>PixelMind</span>
+        </button>
+
+        <div className="pc-nav-center-title d-none d-md-block">{pageLabel}</div>
+
+        <button
+          className="navbar-toggler ms-auto"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#pcNav"
+          aria-controls="pcNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon" />
+        </button>
+
+        <div className="collapse navbar-collapse" id="pcNav">
+          {!isDiscover && (
+            <div className="ms-auto d-flex gap-2 mt-3 mt-lg-0 flex-wrap align-items-lg-center">
+              <button className="btn pc-pill btn-sm" onClick={() => navigate("/#crear")}>
+                Nuevo Post
+              </button>
+
+              <button className="btn pc-pill btn-sm" onClick={() => navigate("/#buscar")}>
+                Buscar por ID
+              </button>
+            </div>
+          )}
+
+          <div className="d-md-none text-center mt-3 w-100">
+            <div className="pc-nav-center-title">{pageLabel}</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
 // ---------------------- APP PRINCIPAL ----------------------
 export default function App() {
   return (
-    <div className="bg-dark text-light min-vh-100">
-      <main className="container py-4">
-        <Routes>
-          <Route path="/" element={<FeedPage />} />
-          <Route path="/discover" element={<DiscoverPage />} />
-        </Routes>
-      </main>
+    <>
+      <TopNav />
 
-      <Switcher />
-      <BackToTopButton />
-    </div>
+      <div className="pm-shell min-vh-100 pc-main">
+        <main className="container-fluid px-4 py-4">
+          <Routes>
+            <Route path="/" element={<FeedPage />} />
+            <Route path="/discover" element={<DiscoverPage />} />
+          </Routes>
+        </main>
+
+        <Switcher />
+        <BackToTopButton />
+      </div>
+    </>
   );
 }
