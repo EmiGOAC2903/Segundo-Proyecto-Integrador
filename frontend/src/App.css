@@ -295,3 +295,14 @@ button[aria-label="Scroll to top"]:hover,
   color: rgba(255,255,255,.55);
   font-size: .9rem;
 }
+
+.pm-float-toggle{
+  background: var(--pm-teal) !important;
+  border-color: var(--pm-teal) !important;
+  color: #fff !important;
+  font-weight: 800;
+}
+
+.pm-float-toggle:hover{
+  filter: brightness(1.07);
+}
