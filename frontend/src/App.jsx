@@ -927,17 +927,16 @@ function DiscoverPage() {
 function Switcher() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isDiscover = location.pathname === "/discover";
+  const isDiscover = location.pathname.endsWith("/discover");
 
-  const goFeed = () => {
-    if (isDiscover) navigate("/");
-    else window.location.reload();
-  };
 
-  const goDiscover = () => {
-    if (isDiscover) window.location.reload();
-    else navigate("/discover");
-  };
+  const goFeed = () => 
+    navigate("/");
+  
+
+  const goDiscover = () => 
+    navigate("/discover");
+  
 
   return (
     <div
