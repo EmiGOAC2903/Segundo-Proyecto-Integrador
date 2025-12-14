@@ -109,6 +109,8 @@ Seguir estas instrucciones en caso de que sea la primera vez que se usa la herra
 #### Dependencias (Back-end)
 1. En la carpeta `api/` instala las dependencias del servidor:
    - `pip install -r requirements.txt`
+
+
 Es indispensable incluir un requirements.txt y el comando para levantar el servidor
 
 #### Variables de entorno (Back-end)
