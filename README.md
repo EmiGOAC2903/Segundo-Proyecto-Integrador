@@ -5,6 +5,7 @@ Este repositorio es para el segundo proyecto de Introducción al Desarrollo Web
 Mariela Mejía Gutiérrez - 201373  
 Tania Mendoza González - 208375  
 Emilio González Acosta - 207911
+Carlos Lugo Torres - 207647
 
 ## Resumen del producto
 ### Proyecto elegido
