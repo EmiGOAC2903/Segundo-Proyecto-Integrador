@@ -7,8 +7,9 @@ __pycache__/
 *.pyc
 venv/
 .venv/
+api/__pycache__/
 
-# Environment files (MUY IMPORTANTE)
+# Environment files 
 .env
 api/.env
 frontend/.env
