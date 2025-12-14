@@ -44,9 +44,9 @@ El objetivo del proyecto es incorporar los temas vistos en clase y reforzar las 
 - Restricción: solo el usuario que creó el post puede editarlo o borrarlo
 
 ## Links
-- App (Front): PENDIENTE
-- API (Back): PENDIENTE
-- Health endpoint (API): PENDIENTE
+- App (Front): https://emigoac2903.github.io/Segundo-Proyecto-Integrador/
+- API (Back): https://segundo-proyecto-integrador.onrender.com/
+- Health endpoint (API): https://segundo-proyecto-integrador.onrender.com/
 
 ## Live demo
 - Video: Se agendó una cita con el profesor para el 14 de diciembre 2025 a las 7:00pm
@@ -110,9 +110,10 @@ Seguir estas instrucciones en caso de que sea la primera vez que se usa la herra
 1. En la carpeta `api/` instala las dependencias del servidor:
    - `pip install -r requirements.txt`
 
+
+Es indispensable incluir un requirements.txt y el comando para levantar el servidor
+
 #### Variables de entorno (Back-end)
-En la carpeta `api/` crea un archivo `.env` con:
-UNSPLASH_ACCESS_KEY="TU_ACCESS_KEY"
 
 #### Comandos 
 1. En una terminal nueva (diferente a la que corrió el front-end), nos cambiamos a la carpeta de api: cd api
