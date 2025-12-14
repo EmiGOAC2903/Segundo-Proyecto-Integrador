@@ -117,7 +117,7 @@ function UserSelector({ usuarioActual, setUsuarioActual }) {
 
     if (nombre) {
       sessionStorage.setItem("usuarioActual", nombre);
-      setUsuarioActual(nombre); // fuerza re-render inmediato
+      setUsuarioActual(nombre); 
     } else {
       sessionStorage.removeItem("usuarioActual");
       setUsuarioActual("anon");
@@ -126,28 +126,35 @@ function UserSelector({ usuarioActual, setUsuarioActual }) {
 
   return (
     <section className="mb-4">
-      <div className="row g-2 align-items-center">
-        <div className="col-sm-6 col-md-4">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            placeholder="nombre de usuario (ej. tania)"
-          />
-        </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          actualizarUsuario();
+        }}
+      >
+        <div className="row g-2 align-items-center">
+          <div className="col-sm-6 col-md-4">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              placeholder="nombre de usuario (ej. tania)"
+            />
+          </div>
 
-        <div className="col-sm-6 col-md-4">
-          <button onClick={actualizarUsuario} className="btn btn-sm btn-success">
-            Usar este usuario
-          </button>
-        </div>
+          <div className="col-sm-6 col-md-4">
+            <button type="submit" className="btn btn-sm btn-success">
+              Usar este usuario
+            </button>
+          </div>
 
-        <div className="col-12 mt-2">
-          <small className="text-muted">
-            Usuario actual: <strong>{usuarioActual}</strong>
-          </small>
+          <div className="col-12 mt-2">
+            <small className="text-muted">
+              Usuario actual: <strong>{usuarioActual}</strong>
+            </small>
+          </div>
         </div>
-      </div>
+      </form>
     </section>
   );
 }
@@ -185,24 +192,34 @@ function SearchById({ onResult }) {
 
   return (
     <section id="buscar" className="mb-4">
-      <h2 className="h6 mb-2">Buscar post por ID</h2>
-      <form onSubmit={handleSubmit} className="row g-2">
-        <div className="col-sm-4 col-md-3">
-          <input
-            type="number"
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            placeholder="ID"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-          />
+      <div className="pm-panel">
+        <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+          <h2 className="pm-section-title mb-0">Buscar post por ID</h2>
+          <span className="pm-hint">Encuentra un post específico por su ID</span>
         </div>
-        <div className="col-sm-4 col-md-2">
-          <button type="submit" className="btn btn-sm btn-primary">
-            Buscar
-          </button>
-        </div>
-      </form>
-      <p className="text-muted small mt-2">{msg}</p>
+
+        <form onSubmit={handleSubmit} className="pm-searchbar">
+          <div className="input-group input-group-sm">
+            <span className="input-group-text pm-input-addon">#</span>
+
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              className="form-control bg-dark text-light border-secondary pm-input"
+              placeholder="Ej. 2"
+              value={id}
+              onChange={(e) => setId(e.target.value.replace(/\D/g, ""))}
+            />
+
+            <button type="submit" className="btn btn-primary pm-btn-primary">
+              Buscar
+            </button>
+          </div>
+        </form>
+
+        {msg && <p className="pm-msg small mt-2 mb-0">{msg}</p>}
+      </div>
     </section>
   );
 }
@@ -215,9 +232,11 @@ function CreatePostForm({ onCreated }) {
   const [descripcion, setDescripcion] = useState("");
   const [tagsStr, setTagsStr] = useState("");
   const [msg, setMsg] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (isSaving) return;
 
     const cleanTitulo = titulo.trim();
     const cleanImagen = imagen.trim();
@@ -250,6 +269,8 @@ function CreatePostForm({ onCreated }) {
 
     try {
       setMsg("Guardando post...");
+      setIsSaving(true);
+
       const res = await fetch(`${API}/api/posts`, {
         method: "POST",
         headers: {
@@ -277,66 +298,91 @@ function CreatePostForm({ onCreated }) {
     } catch (err) {
       console.error(err);
       setMsg("No se pudo guardar el post.");
+    } finally {
+      setIsSaving(false);
     }
   }
 
   return (
-    <section id="crear" className="mb-4">
-      <h2 className="h6 mb-2">Crear nuevo post</h2>
-      <form onSubmit={handleSubmit} className="row g-2">
-        <div className="col-md-4">
-          <label className="form-label small">Título</label>
-          <input
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-            required
-          />
+    <section id="crear" className="mb-5">
+      <div className="pm-panel">
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <h2 className="pm-section-title mb-0">Crear nuevo post</h2>
+          <span className="pm-hint">Comparte una imagen con título y descripción</span>
         </div>
-        <div className="col-md-4">
-          <label className="form-label small">URL de imagen</label>
-          <input
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            placeholder="https://..."
-            value={imagen}
-            onChange={(e) => setImagen(e.target.value)}
-            required
-          />
-        </div>
-        <div className="col-md-4">
-          <label className="form-label small">Link externo (opcional)</label>
-          <input
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            placeholder="https://..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-        </div>
-        <div className="col-12">
-          <label className="form-label small">Descripción (opcional)</label>
-          <textarea
-            rows="2"
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-          />
-        </div>
-        <div className="col-12">
-          <label className="form-label small">Etiquetas (coma)</label>
-          <input
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            placeholder="viaje, paisaje"
-            value={tagsStr}
-            onChange={(e) => setTagsStr(e.target.value)}
-          />
-        </div>
-        <div className="col-12">
-          <button type="submit" className="btn btn-sm btn-success mt-2">
-            Guardar post
-          </button>
-        </div>
-      </form>
-      <p className="text-muted small mt-2">{msg}</p>
+
+        <form onSubmit={handleSubmit} className="row g-3">
+          <div className="col-md-4">
+            <label className="form-label small">Título</label>
+            <input
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label small">URL de imagen</label>
+            <input
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              placeholder="https://..."
+              value={imagen}
+              onChange={(e) => setImagen(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label small">Link externo (opcional)</label>
+            <input
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              placeholder="https://..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+          </div>
+
+          <div className="col-12">
+            <label className="form-label small">Descripción (opcional)</label>
+            <textarea
+              rows="2"
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+            />
+          </div>
+
+          <div className="col-12">
+            <label className="form-label small">Etiquetas (coma)</label>
+            <input
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              placeholder="viaje, paisaje"
+              value={tagsStr}
+              onChange={(e) => setTagsStr(e.target.value)}
+            />
+          </div>
+
+          <div className="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <button type="submit" className="btn btn-sm btn-success" disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Guardando...
+                </>
+              ) : (
+                "Guardar post"
+              )}
+            </button>
+
+            {msg && <span className="pm-msg small">{msg}</span>}
+          </div>
+        </form>
+      </div>
     </section>
   );
 }
@@ -351,6 +397,7 @@ function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
   const [descripcion, setDescripcion] = useState("");
   const [tagsStr, setTagsStr] = useState("");
   const [msg, setMsg] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (!editingPost) return;
@@ -367,6 +414,7 @@ function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (isSaving) return;
 
     const postId = editingId;
     if (!postId) {
@@ -390,6 +438,8 @@ function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
 
     try {
       setMsg("Actualizando post...");
+      setIsSaving(true);
+
       const res = await fetch(`${API}/api/posts/${postId}`, {
         method: "PUT",
         headers: {
@@ -430,87 +480,117 @@ function UpdatePostForm({ onUpdated, editingPost, clearEditing }) {
     } catch (err) {
       console.error(err);
       setMsg("No se pudo actualizar el post.");
+    } finally {
+      setIsSaving(false);
     }
   }
 
   return (
-    <section id="editar" className="mb-4">
-      <div className="d-flex justify-content-between align-items-center">
-        <h2 className="h6 mb-2">Actualizar post</h2>
+    <section id="editar" className="mb-5">
+      <div className="pm-panel pm-panel-edit">
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div>
+            <h2 className="pm-section-title mb-1">
+              Actualizar post {editingId ? `#${editingId}` : ""}
+            </h2>
+            <div className="pm-hint">
+              {editingId
+                ? "Modifica los campos que quieras y guarda cambios."
+                : "Selecciona un post para editar."}
+            </div>
+          </div>
 
-        {editingId && (
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-secondary"
-            onClick={() => {
-              setEditingId(null);
-              clearEditing && clearEditing();
-              setTitulo("");
-              setImagen("");
-              setUrl("");
-              setDescripcion("");
-              setTagsStr("");
-              setMsg("Edición cancelada.");
-            }}
-          >
-            Cancelar
-          </button>
-        )}
+          {editingId && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-secondary"
+              onClick={() => {
+                setEditingId(null);
+                clearEditing && clearEditing();
+                setTitulo("");
+                setImagen("");
+                setUrl("");
+                setDescripcion("");
+                setTagsStr("");
+                setMsg("Edición cancelada.");
+              }}
+              disabled={isSaving}
+            >
+              Cancelar
+            </button>
+          )}
+        </div>
+
+        <form onSubmit={handleSubmit} className="row g-3">
+          <div className="col-md-4">
+            <label className="form-label small">Título (opcional)</label>
+            <input
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+            />
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label small">URL de imagen (opcional)</label>
+            <input
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              placeholder="https://..."
+              value={imagen}
+              onChange={(e) => setImagen(e.target.value)}
+            />
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label small">Link externo (opcional)</label>
+            <input
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              placeholder="https://..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+          </div>
+
+          <div className="col-12">
+            <label className="form-label small">Descripción (opcional)</label>
+            <textarea
+              rows="2"
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+            />
+          </div>
+
+          <div className="col-12">
+            <label className="form-label small">Etiquetas (coma, opcional)</label>
+            <input
+              className="form-control form-control-sm bg-dark text-light border-secondary"
+              placeholder="viaje, paisaje"
+              value={tagsStr}
+              onChange={(e) => setTagsStr(e.target.value)}
+            />
+          </div>
+
+          <div className="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <button type="submit" className="btn btn-sm btn-warning" disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
+                  Actualizando...
+                </>
+              ) : (
+                "Actualizar post"
+              )}
+            </button>
+
+            {msg && <span className="pm-msg small">{msg}</span>}
+          </div>
+        </form>
       </div>
-
-      <form onSubmit={handleSubmit} className="row g-2">
-        <div className="col-md-4">
-          <label className="form-label small">Título (opcional)</label>
-          <input
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
-          />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label small">URL de imagen (opcional)</label>
-          <input
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            placeholder="https://..."
-            value={imagen}
-            onChange={(e) => setImagen(e.target.value)}
-          />
-        </div>
-        <div className="col-md-6">
-          <label className="form-label small">Link externo (opcional)</label>
-          <input
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            placeholder="https://..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-        </div>
-        <div className="col-12">
-          <label className="form-label small">Descripción (opcional)</label>
-          <textarea
-            rows="2"
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-          />
-        </div>
-        <div className="col-12">
-          <label className="form-label small">Etiquetas (coma, opcional)</label>
-          <input
-            className="form-control form-control-sm bg-dark text-light border-secondary"
-            placeholder="viaje, paisaje"
-            value={tagsStr}
-            onChange={(e) => setTagsStr(e.target.value)}
-          />
-        </div>
-        <div className="col-12">
-          <button type="submit" className="btn btn-sm btn-warning mt-2">
-            Actualizar post
-          </button>
-        </div>
-      </form>
-
-      <p className="text-muted small mt-2">{msg}</p>
     </section>
   );
 }
@@ -532,7 +612,6 @@ function FeedPage() {
 
   useEffect(() => {
     cargar(paginaActual);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paginaActual]);
 
   useEffect(() => {
@@ -541,6 +620,14 @@ function FeedPage() {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [location.hash]);
+
+  useEffect(() => {
+    if (!editingPost) return;
+    requestAnimationFrame(() => {
+      const el = document.getElementById("editar");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [editingPost]);
 
   async function cargar(pagina = 0) {
     pagina = Number(pagina) || 0;
@@ -565,7 +652,6 @@ function FeedPage() {
 
   function startEdit(post) {
     setEditingPost(post);
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   }
 
   function clearEditing() {
@@ -618,20 +704,26 @@ function FeedPage() {
         <p className="text-muted small">{msg}</p>
       </section>
 
-      {/* MASONRY */}
       <section className="mb-2">
-        <div className="pm-masonry">
-          {posts.map((post) => (
-            <div className="pm-masonry-item" key={post.id}>
-              <PostCard
-                post={post}
-                onEdit={startEdit}
-                onDelete={handleDelete}
-                usuarioActual={usuarioActual}
-              />
-            </div>
-          ))}
-        </div>
+        {posts.length === 0 ? (
+          <div className="pm-empty">
+            <div className="pm-empty-title">Aún no hay posts</div>
+            <div className="pm-empty-sub">Crea el primero en “Crear nuevo post”.</div>
+          </div>
+        ) : (
+          <div className="pm-masonry">
+            {posts.map((post) => (
+              <div className="pm-masonry-item" key={post.id}>
+                <PostCard
+                  post={post}
+                  onEdit={startEdit}
+                  onDelete={handleDelete}
+                  usuarioActual={usuarioActual}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="mb-4">
@@ -644,17 +736,11 @@ function FeedPage() {
             Anterior
           </button>
 
-          <button
-            className="btn btn-outline-light btn-sm"
-            onClick={() => setPaginaActual((p) => p + 1)}
-          >
+          <button className="btn btn-outline-light btn-sm" onClick={() => setPaginaActual((p) => p + 1)}>
             Siguiente
           </button>
 
-          <button
-            className="btn btn-outline-success btn-sm"
-            onClick={() => cargar(paginaActual)}
-          >
+          <button className="btn btn-outline-success btn-sm" onClick={() => cargar(paginaActual)}>
             Recargar
           </button>
         </div>
@@ -663,15 +749,17 @@ function FeedPage() {
       <hr className="border-secondary" />
 
       <SearchById onResult={setBusquedaPost} />
+
       {busquedaPost && (
-        <div className="mt-2 mb-4">
-          <div className="card mt-3 bg-dark text-light border-success-subtle">
-            <div className="card-body">
-              <h5>{busquedaPost.titulo}</h5>
-              <p>{busquedaPost.descripcion || "Sin descripción"}</p>
-              <small className="text-muted">
-                Publicado por: <strong>{busquedaPost.usuario}</strong>
-              </small>
+        <div className="mt-3 mb-4">
+          <div className="pm-masonry pm-masonry-1">
+            <div className="pm-masonry-item">
+              <PostCard
+                post={busquedaPost}
+                onEdit={startEdit}
+                onDelete={handleDelete}
+                usuarioActual={usuarioActual}
+              />
             </div>
           </div>
         </div>
@@ -681,13 +769,17 @@ function FeedPage() {
 
       <CreatePostForm onCreated={() => cargar(paginaActual)} />
 
-      <hr className="border-secondary" />
+      {editingPost && (
+        <>
+          <hr className="border-secondary" />
 
-      <UpdatePostForm
-        onUpdated={() => cargar(paginaActual)}
-        editingPost={editingPost}
-        clearEditing={clearEditing}
-      />
+          <UpdatePostForm
+            onUpdated={() => cargar(paginaActual)}
+            editingPost={editingPost}
+            clearEditing={clearEditing}
+          />
+        </>
+      )}
     </>
   );
 }
@@ -765,7 +857,6 @@ function DiscoverPage() {
 
   useEffect(() => {
     cargar({ append: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleReload() {
@@ -791,15 +882,26 @@ function DiscoverPage() {
         {msg}
       </p>
 
-      {/* MASONRY */}
       <section className="mb-3">
-        <div className="pm-masonry">
-          {items.map((post) => (
-            <div className="pm-masonry-item" key={post.id}>
-              <PostCard post={post} onEdit={null} onDelete={null} usuarioActual="__none__" />
-            </div>
-          ))}
-        </div>
+        {items.length === 0 && isLoading ? (
+          <div className="pm-empty">
+            <div className="pm-empty-title">Cargando imágenes…</div>
+            <div className="pm-empty-sub">Un segundo, ya casi.</div>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="pm-empty">
+            <div className="pm-empty-title">Sin resultados</div>
+            <div className="pm-empty-sub">Prueba “Recargar imágenes”.</div>
+          </div>
+        ) : (
+          <div className="pm-masonry">
+            {items.map((post) => (
+              <div className="pm-masonry-item" key={post.id}>
+                <PostCard post={post} onEdit={null} onDelete={null} usuarioActual="__none__" />
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <div className="text-center mt-3 mb-4">
