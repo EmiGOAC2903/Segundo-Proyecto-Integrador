@@ -1003,7 +1003,8 @@ function TopNav() {
           onClick={() => navigate("/")}
           type="button"
         >
-          <img src="/logo.png" alt="PixelMind logo" className="pc-logo" />
+          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="PixelMind logo" className="pc-logo" />
+
           <span>PixelMind</span>
         </button>
 
