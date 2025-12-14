@@ -44,8 +44,8 @@ El objetivo del proyecto es incorporar los temas vistos en clase y reforzar las 
 - Restricción: solo el usuario que creó el post puede editarlo o borrarlo
 
 ## Links
-- App (Front): PENDIENTE
-- API (Back): PENDIENTE
+- App (Front): https://emigoac2903.github.io/Segundo-Proyecto-Integrador/
+- API (Back): https://segundo-proyecto-integrador.onrender.com/
 - Health endpoint (API): PENDIENTE
 
 ## Live demo
@@ -111,8 +111,6 @@ Seguir estas instrucciones en caso de que sea la primera vez que se usa la herra
    - `pip install -r requirements.txt`
 
 #### Variables de entorno (Back-end)
-En la carpeta `api/` crea un archivo `.env` con:
-UNSPLASH_ACCESS_KEY="TU_ACCESS_KEY"
 
 #### Comandos 
 1. En una terminal nueva (diferente a la que corrió el front-end), nos cambiamos a la carpeta de api: cd api
