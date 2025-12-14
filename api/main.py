@@ -172,8 +172,37 @@ seed()
 
 @app.get("/")
 def health():
-    """Endpoint simple para verificar que la API está viva."""
-    return {"ok": True, "count": len(DB)}
+    """
+    Health endpoint:
+    - Verifica que la API está viva (ok + count)
+    - Corrobora que la API externa (Unsplash) está activa sin exponer tokens
+    """
+    unsplash_configured = bool(UNSPLASH_ACCESS_KEY)
+    unsplash_ok = False
+
+    if unsplash_configured:
+        try:
+            # Llamada mínima (1 foto) solo para validar conectividad y credencial
+            resp = requests.get(
+                "https://api.unsplash.com/photos/random",
+                headers={"Authorization": f"Client-ID {UNSPLASH_ACCESS_KEY}"},
+                params={"count": 1},
+                timeout=3
+            )
+            unsplash_ok = (resp.status_code == 200)
+        except Exception:
+            unsplash_ok = False
+
+    return {
+        "ok": True,
+        "count": len(DB),
+        "external_api": {
+            "unsplash": {
+                "configured": unsplash_configured,
+                "ok": unsplash_ok
+            }
+        }
+    }
 
 
 @app.get("/api/posts", response_model=List[Post])
