@@ -11,7 +11,10 @@ const isLocal =
   ? "http://127.0.0.1:8000"
   : "http://127.0.0.1:8000"; // cambiar por dominio cuando esté en producción */
 
-const API = "http://localhost:8000"; // backend FastAPI
+const API = isLocal
+  ? "http://127.0.0.1:8000"
+  : "https://segundo-proyecto-integrador.onrender.com";
+
 
 function getUsuarioActual() {
   return sessionStorage.getItem("usuarioActual") || "anon";
